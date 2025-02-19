@@ -1,7 +1,6 @@
 import 'package:api_quran/models/surah.dart';
 import 'package:api_quran/services/http_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 
 class DetailPage extends StatefulWidget {
   final int nomor;
@@ -66,7 +65,13 @@ class _DetailPageState extends State<DetailPage> {
                               ),
                             ),
                             ListTile(
-                              title: Html(data: detail.deskripsi)
+                              title: Text(
+                                detail.deskripsi,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: isDarkMode ? const Color(0xFFCD9933) : Colors.black,
+                                ),
+                              ),
                             )
                           ],
                         ),
