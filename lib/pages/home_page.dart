@@ -1,22 +1,44 @@
-
-// import 'package:api_quran/models/detail_surah.dart';
-import 'package:api_quran/models/surah.dart';
 import 'package:api_quran/pages/detail_page.dart';
 import 'package:api_quran/services/http_service.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-class HomePage extends StatelessWidget {
-
-  final HttpService httpService = HttpService();
-
+class HomePage extends StatefulWidget {
   HomePage({super.key});
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final HttpService httpService = HttpService();
+  bool isDarkMode = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home - Quran'),
+        backgroundColor: const Color(0xFF0A3D2E),
+        title: Text(
+          'Quran App',
+          style: GoogleFonts.poppins(
+              color:const Color(0xFFCD9933), fontWeight: FontWeight.w600),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(isDarkMode ? Icons.wb_sunny : Icons.nightlight_round, color: Colors.white),
+            onPressed: () {
+              setState(() {
+                isDarkMode = !isDarkMode;
+              });
+            },
+          ),
+          const SizedBox(
+            width: 10,
+          )
+        ],
       ),
+      backgroundColor: isDarkMode ? const Color(0xFF0A3D2E) : Colors.white,
       body: FutureBuilder(
           future: httpService.getSurah(),
           builder: (context, snapshot) {
@@ -24,53 +46,73 @@ class HomePage extends StatelessWidget {
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasData) {
               final surah = snapshot.data!;
-              return ListView(
-                  children: surah
-                      .map((Surah surah) => Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            child: ListTile(
-                              shape: RoundedRectangleBorder(
-                                  side: BorderSide(
-                                      color: Colors.black.withOpacity(0.05),
-                                      width: 2),
-                                  borderRadius: BorderRadius.circular(8)),
-                              tileColor: Colors.black.withOpacity(0.05),
-                              leading: CircleAvatar(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                                child: Text(
-                                  "${surah.nomor}",
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              ),
-                              title: Text(
-                                  "${surah.namaLatin} ( ${surah.nama} )"),
-                              subtitle: Text(
-                                  "${surah.arti} | ${surah.jumlahAyat} Ayat"),
-                              trailing: ElevatedButton(
-                                  onPressed: () {
-                                  Navigator.push(context, MaterialPageRoute(builder:(context) => DetailPage(nomor: surah.nomor,)));
-                                  }, child: const Text('Baca')),
-                            ),
-                          ))
-                      .toList());
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: surah.length,
+                itemBuilder: (context, index) {
+                  final item = surah[index];
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  DetailPage(nomor: item.nomor)));
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: isDarkMode ? Colors.black.withOpacity(0.2) : Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 6,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(16),
+                        leading: CircleAvatar(
+                          backgroundColor: isDarkMode ? const Color(0xFFCD9933) : const Color.fromARGB(255, 7, 84, 61), // Warna emas
+                          foregroundColor: Colors.white,
+                          radius: 24,
+                          child: Text(
+                            "${item.nomor}",
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        title: Text(
+                          "${item.namaLatin} ( ${item.nama} )",
+                          style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: isDarkMode ? const Color(0xFFCD9933) : Colors.black),
+                        ),
+                        subtitle: Text(
+                          "${item.arti} | ${item.jumlahAyat} Ayat",
+                          style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: isDarkMode ? const Color(0xFFCD9933) : Colors.grey[700]),
+                        ),
+                        trailing: Icon(
+                          Icons.arrow_forward_ios,
+                          color: isDarkMode ? const Color(0xFFCD9933) : const Color(0xFFCD9933),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
             } else {
-              return const Text("No data available");
+              return const Center(
+                child: Text("No data available",
+                    style: TextStyle(fontSize: 16, color: Colors.red)),
+              );
             }
           }),
     );
   }
-
-
-
-  // Future<void> _dialog(BuildContext context) {
-  //   finalSurah surah;
-  //   return showDialog(context: context, builder: (BuildContext context){
-  //     return AlertDialog(
-  //       title: Text(surah.nama),
-  //     );
-  //   });
-  // }
-
 }

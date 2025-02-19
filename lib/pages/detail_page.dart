@@ -1,79 +1,112 @@
-// import 'package:api_quran/models/detail_surah.dart';
 import 'package:api_quran/models/surah.dart';
 import 'package:api_quran/services/http_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 
-class DetailPage extends StatelessWidget {
-  final HttpService httpService = HttpService();
+class DetailPage extends StatefulWidget {
   final int nomor;
 
-  DetailPage({super.key, required this.nomor});
+  const DetailPage({super.key, required this.nomor});
+
+  @override
+  _DetailPageState createState() => _DetailPageState();
+}
+
+class _DetailPageState extends State<DetailPage> {
+  final HttpService httpService = HttpService();
+  bool isDarkMode = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home - Quran $nomor'),
+        leading: const BackButton(color: Color(0xFFCD9933)),
+        backgroundColor: const Color(0xFF0A3D2E),
+        title: Text(
+          'Surah ${widget.nomor}',
+          style: const TextStyle(color:  Color(0xFFCD9933), fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(isDarkMode ? Icons.light_mode : Icons.nightlight_round, color: const Color(0xFFCD9933)),
+            onPressed: () {
+              setState(() {
+                isDarkMode = !isDarkMode;
+              });
+            },
+          ),
+          const SizedBox(width: 10),
+        ],
       ),
+      backgroundColor: isDarkMode ? const Color(0xFF0A3D2E) : Colors.white,
       body: FutureBuilder(
-          future: httpService.showSurah(nomor),
+          future: httpService.showSurah(widget.nomor),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasData) {
               Surah detail = snapshot.data!;
               return SingleChildScrollView(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(20),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Surah ${detail.namaLatin}"),
-                    Text("${detail.jumlahAyat} ayat"),
-                    Text("Tempat turun:  ${detail.tempatTurun}"),
-                    if(detail.ayat != null)
+                    Card(
+                      color: isDarkMode ? Colors.black.withOpacity(0.2) : Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Column(
+                          children: [
+                            ListTile(
+                              title: Text(
+                                detail.namaLatin,
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDarkMode ? const Color(0xFFCD9933) : Colors.black),
+                              ),
+                            ),
+                            ListTile(
+                              title: Html(data: detail.deskripsi)
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
                     ListView.builder(
                       shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
+                      physics: const NeverScrollableScrollPhysics(),
                       itemCount: detail.ayat!.length,
-                      itemBuilder: (BuildContext context, int index) {
+                      itemBuilder: (context, index) {
                         Ayat ayat = detail.ayat![index];
                         return Card(
-                          margin: EdgeInsets.only(bottom: 10),
+                          color: isDarkMode ? Colors.black.withOpacity(0.2) : Colors.white,
                           child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Ayat ${ayat.nomor}",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green,
+                              padding: const EdgeInsets.all(10),
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: const Color.fromARGB(255, 7, 84, 61),
+                                  foregroundColor: Colors.white,
+                                  child: Text(
+                                    ayat.nomor.toString(),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ),
-                                SizedBox(height: 10),
-                                Text(
+                                title: Text(
                                   ayat.ar,
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
                                   textAlign: TextAlign.right,
-                                ),
-                                
-                                SizedBox(height: 10),
-                                Text(
-                                  ayat.idn,
                                   style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey[700],
-                                  ),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDarkMode ? const Color(0xFFCD9933) : Colors.black),
                                 ),
-                              ],
-                            ),
-                          ),
+                                subtitle: Text(
+                                  ayat.idn,
+                                  textAlign: TextAlign.justify,
+                                  style: TextStyle(
+                                      fontSize: 14, color: isDarkMode ? const Color(0xFFCD9933) : Colors.black),
+                                ),
+                              )),
                         );
                       },
                     ),
@@ -81,7 +114,13 @@ class DetailPage extends StatelessWidget {
                 ),
               );
             } else {
-              return const Text("No data available");
+              return Center(
+                child: Text(
+                  "No data available",
+                  style: TextStyle(
+                      fontSize: 16, color: isDarkMode ? const Color(0xFFCD9933) : Colors.black),
+                ),
+              );
             }
           }),
     );
